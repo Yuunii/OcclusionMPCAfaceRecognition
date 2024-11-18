@@ -2,48 +2,37 @@ import numpy as np
 import cv2
 import os
 import matplotlib.pyplot as plt
-from scipy.ndimage import convolve
 
-class ImageProcessor:
+class Imageload:
     def __init__(self, image_shape=(32, 32)):
         self.image_shape = image_shape
 
     def read_images(self, path):
-        images = []
-        labels = []
+        images, labels = [], []
         for root, dirs, files in os.walk(path):
             for file in files:
                 img_path = os.path.join(root, file)
                 img = self.load_image_from_path(img_path)
                 if img is not None:
-                    img_gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY) if img.ndim == 3 else img
+                    img_gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
                     img_resized = cv2.resize(img_gray, self.image_shape)
                     img_normalized = img_resized / 255.0
                     images.append(img_normalized)
                     labels.append(root.split(os.path.sep)[-1])
         return images, labels
 
-    def mask_occlusion(self, image, top_left=(10, 20), bottom_right=(26, 26)):
-        mask = np.zeros(image.shape[:2], dtype=np.uint8)
-        cv2.rectangle(mask, top_left, bottom_right, (255), thickness=cv2.FILLED)
-        occluded_image = cv2.bitwise_and(image, image, mask=255 - mask)
-        occlusion_percentage = (np.sum(mask == 255) / (image.shape[0] * image.shape[1])) * 100
-        print(f"Occlusion percentage: {occlusion_percentage:.2f}%")
-        return occluded_image
-
-    def load_image_from_path(self, imgPath):
+    def load_image_from_path(self, img_path):
         try:
-            if imgPath.lower().endswith('.gif'):
-                gif = cv2.VideoCapture(imgPath)
+            if img_path.lower().endswith('.gif'):
+                gif = cv2.VideoCapture(img_path)
                 ret, frame = gif.read()
                 if ret:
                     return frame
             else:
-                return cv2.imread(imgPath, cv2.IMREAD_GRAYSCALE)
+                return cv2.imread(img_path, cv2.IMREAD_GRAYSCALE)
         except Exception as e:
             print(e)
             return None
-
 
 class PCAFaceRecognizer:
     def __init__(self, k):
@@ -127,11 +116,10 @@ class FaceRecognitionEvaluator:
 
 def main():
     base_path = 'Yaledatabase_full/data'
-    k = 50
-    image_shape = (32, 32)
+    k = 30
 
     # Initialize classes
-    processor = ImageProcessor(image_shape=image_shape)
+    processor = Imageload()
     recognizer = PCAFaceRecognizer(k=k)
 
     # Load and preprocess images

@@ -1,38 +1,5 @@
 import numpy as np
-import cv2
-import os
-import matplotlib.pyplot as plt
-
-class ImageProcessor:
-    def __init__(self, image_shape=(32, 32)):
-        self.image_shape = image_shape
-
-    def read_images(self, path):
-        images, labels = [], []
-        for root, dirs, files in os.walk(path):
-            for file in files:
-                img_path = os.path.join(root, file)
-                img = self.load_image_from_path(img_path)
-                if img is not None:
-                    img_gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
-                    img_resized = cv2.resize(img_gray, self.image_shape)
-                    img_normalized = img_resized / 255.0
-                    images.append(img_normalized)
-                    labels.append(root.split(os.path.sep)[-1])
-        return images, labels
-
-    def load_image_from_path(self, img_path):
-        try:
-            if img_path.lower().endswith('.gif'):
-                gif = cv2.VideoCapture(img_path)
-                ret, frame = gif.read()
-                if ret:
-                    return frame
-            else:
-                return cv2.imread(img_path, cv2.IMREAD_COLOR)
-        except Exception as e:
-            print(e)
-            return None
+from PCA import Imageload
 
 
 class PCAProcessor:
@@ -110,10 +77,10 @@ class ModularPCAEvaluator:
 
 def main():
     base_path = 'Yaledatabase_full/data'
-    k = 50
+    k = 30
     n = 16
 
-    processor = ImageProcessor()
+    processor = Imageload()
     images, labels = processor.read_images(base_path)
 
     pca_processor = PCAProcessor(k)

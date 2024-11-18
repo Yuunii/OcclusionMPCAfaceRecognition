@@ -1,46 +1,6 @@
 import numpy as np
-import cv2
-import os
 import matplotlib.pyplot as plt
-
-class ImageProcessor:
-    def __init__(self, image_shape=(32, 32)):
-        self.image_shape = image_shape
-
-    def read_images(self, path):
-        images, labels = [], []
-        for root, dirs, files in os.walk(path):
-            for file in files:
-                img_path = os.path.join(root, file)
-                img = self.load_image_from_path(img_path)
-                if img is not None:
-                    img_gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
-                    img_resized = cv2.resize(img_gray, self.image_shape)
-                    images.append(img_resized / 255.0)
-                    labels.append(root.split(os.path.sep)[-1])
-        return images, labels
-
-    def load_image_from_path(self, img_path):
-        try:
-            if img_path.lower().endswith('.gif'):
-                gif = cv2.VideoCapture(img_path)
-                ret, frame = gif.read()
-                if ret:
-                    return cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
-            else:
-                return cv2.imread(img_path, cv2.IMREAD_GRAYSCALE)
-        except Exception as e:
-            print(e)
-            return None
-
-    def mask_occlusion(self, image, top_left_y):
-        mask = np.zeros(image.shape[:2], dtype=np.uint8)
-        top_left = (10, top_left_y)
-        bottom_right = (26, 26)
-        cv2.rectangle(mask, top_left, bottom_right, (255), thickness=cv2.FILLED)
-        occluded_image = cv2.bitwise_and(image, image, mask=255 - mask)
-        occlusion_percentage = (np.sum(mask == 255) / (image.shape[0] * image.shape[1])) * 100
-        return occluded_image, occlusion_percentage
+from PCA_Occlusion import Imageload, Occlusion
 
 
 class PCAProcessor:
@@ -115,7 +75,7 @@ class ModularPCAEvaluator:
         return recognition_rate
 
 
-class OcclusionEvaluator:
+class OcclusionEvaluator(Occlusion):
     def __init__(self, image_processor, pca_evaluator, k, n):
         self.image_processor = image_processor
         self.pca_evaluator = pca_evaluator
@@ -150,7 +110,7 @@ def main():
     k = 30
     n = 16
 
-    processor = ImageProcessor()
+    processor = Imageload()
     images, labels = processor.read_images(base_path)
 
     pca_processor = PCAProcessor(k)

@@ -2,39 +2,9 @@ import numpy as np
 import cv2
 import os
 import matplotlib.pyplot as plt
-from scipy.ndimage import convolve
+from PCA import Imageload
 
-class ImageProcessor:
-    def __init__(self, image_shape=(32, 32)):
-        self.image_shape = image_shape
-
-    def read_images(self, path):
-        images, labels = [], []
-        for root, dirs, files in os.walk(path):
-            for file in files:
-                img_path = os.path.join(root, file)
-                img = self.load_image_from_path(img_path)
-                if img is not None:
-                    img_gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
-                    img_resized = cv2.resize(img_gray, self.image_shape)
-                    img_normalized = img_resized / 255.0
-                    images.append(img_normalized)
-                    labels.append(root.split(os.path.sep)[-1])
-        return images, labels
-
-    def load_image_from_path(self, img_path):
-        try:
-            if img_path.lower().endswith('.gif'):
-                gif = cv2.VideoCapture(img_path)
-                ret, frame = gif.read()
-                if ret:
-                    return cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
-            else:
-                return cv2.imread(img_path, cv2.IMREAD_GRAYSCALE)
-        except Exception as e:
-            print(e)
-            return None
-
+class Occlusion():
     def mask_occlusion(self, image, top_left_y):
         mask = np.zeros(image.shape[:2], dtype=np.uint8)
         top_left = (10, top_left_y)
@@ -45,7 +15,7 @@ class ImageProcessor:
         return occluded_image, occlusion_percentage
 
 
-class PCAProcessor:
+class PCAProcessor():
     def __init__(self, k):
         self.k = k
 
@@ -69,7 +39,7 @@ class PCAProcessor:
         plt.show()
 
 
-class FaceRecognizer:
+class FaceRecognizer():
     def __init__(self, pca_processor):
         self.pca_processor = pca_processor
 
@@ -106,7 +76,7 @@ class FaceRecognizer:
         return correct_predictions / n
 
 
-class OcclusionEvaluator:
+class OcclusionEvaluator(Occlusion):
     def __init__(self, face_recognizer, image_processor):
         self.face_recognizer = face_recognizer
         self.image_processor = image_processor
@@ -138,12 +108,17 @@ def main():
     k = 30
     image_shape = (32, 32)
 
-    processor = ImageProcessor(image_shape)
+    processor = Imageload(image_shape)
     images, labels = processor.read_images(base_path)
 
     pca_processor = PCAProcessor(k)
     face_recognizer = FaceRecognizer(pca_processor)
 
+    #오클루전 평가
+    evaluator = OcclusionEvaluator(face_recognizer, processor)
+    evaluator.plot_occlusion_vs_recognition(images, labels, k)
+
+"""
     # 고유얼굴 시각화
     vector = np.array([pca_processor.image_as_row(img) for img in images])
     mean_train = vector.mean(axis=0)
@@ -152,9 +127,8 @@ def main():
     mv = pca_processor.eigenvector(cov)
     pca_processor.plot_eigenfaces(mv, image_shape)
 
-    # 오클루전 평가
-    evaluator = OcclusionEvaluator(face_recognizer, processor)
-    evaluator.plot_occlusion_vs_recognition(images, labels, k)
+
+"""
 
 
 if __name__ == '__main__':
