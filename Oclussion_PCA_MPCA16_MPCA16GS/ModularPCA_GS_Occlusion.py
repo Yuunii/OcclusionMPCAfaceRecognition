@@ -1,4 +1,4 @@
-from Imageload import MPCA_GS_imageload
+from Imageload import MPCA_GS_Occlusion_imageload
 from eigenvector import MPCA
 from Evaluator import MPCAEvaluator
 from OcclusionEvaluator import MPCAOcclusionEvaluator
@@ -9,7 +9,7 @@ def main():
     k = 30
     n = 16
 
-    processor = MPCA_GS_imageload()
+    processor = MPCA_GS_Occlusion_imageload()
     images, labels = processor.read_images(base_path)
 
     pca_processor = MPCA(k)
@@ -18,6 +18,7 @@ def main():
     # 오클루전 평가
     evaluator = MPCAOcclusionEvaluator(processor, pca_evaluator, k, n)
     evaluator.plot_occlusion_vs_recognition()
+
 
 
 

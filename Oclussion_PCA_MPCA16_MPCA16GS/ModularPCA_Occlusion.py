@@ -1,4 +1,4 @@
-from Imageload import PCA_Imageload
+from Imageload import Occlusion_PCA_Imageload
 from eigenvector import MPCA
 from Evaluator import MPCAEvaluator
 from OcclusionEvaluator import MPCAOcclusionEvaluator
@@ -9,7 +9,7 @@ def main():
     k = 30
     n = 16
 
-    processor = PCA_Imageload()
+    processor = Occlusion_PCA_Imageload()
     images, labels = processor.read_images(base_path)
 
     pca_processor = MPCA(k)

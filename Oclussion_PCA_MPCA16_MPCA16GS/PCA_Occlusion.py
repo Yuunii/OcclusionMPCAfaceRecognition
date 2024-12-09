@@ -1,6 +1,6 @@
-from Imageload import PCA_Imageload
+from Imageload import Occlusion_PCA_Imageload
 from eigenvector import PCA
-from Evaluator import PCAEvaluator
+from Evaluator import Occlusion_PCA_Evaluator
 from OcclusionEvaluator import PCAOcclusionEvaluator
 
 
@@ -9,11 +9,11 @@ def main():
     k = 30
     image_shape = (32, 32)
 
-    processor = PCA_Imageload(image_shape)
+    processor = Occlusion_PCA_Imageload(image_shape)
     images, labels = processor.read_images(base_path)
 
     pca_processor = PCA(k)
-    face_recognizer = PCAEvaluator(pca_processor)
+    face_recognizer = Occlusion_PCA_Evaluator(pca_processor)
 
     #오클루전 평가
     evaluator = PCAOcclusionEvaluator(face_recognizer, processor)

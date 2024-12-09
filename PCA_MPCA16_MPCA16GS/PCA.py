@@ -9,7 +9,7 @@ def main():
 
     # Initialize classes
     processor = PCA_Imageload()
-    recognizer = PCA(k=k)
+    recognizer = PCA(k)
 
     # Load and preprocess images
     images, labels = processor.read_images(base_path)

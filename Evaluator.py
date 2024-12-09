@@ -89,3 +89,40 @@ class MPCAEvaluator:
         recognition_rate = correct_predictions / n_images
         print(f"Recognition Rate: {recognition_rate * 100:.2f}%")
         return recognition_rate
+
+
+class Occlusion_PCA_Evaluator():
+    def __init__(self, pca_processor):
+        self.pca_processor = pca_processor
+
+    def leave_one_out(self, images, labels):
+        if not images:
+            print("Error: No images to process in leave_one_out")
+            return 0
+        correct_predictions = 0
+        n = len(images)
+
+        for leave_out_index in range(n):
+            test_image = images[leave_out_index]
+            test_label = labels[leave_out_index]
+            train_images = images[:leave_out_index] + images[leave_out_index + 1:]
+            train_labels = labels[:leave_out_index] + labels[leave_out_index + 1:]
+
+            vector = np.array([self.pca_processor.image_as_row(img) for img in train_images])
+            mean_train = vector.mean(axis=0)
+            diff = np.subtract(vector, mean_train)
+            cov = self.pca_processor.covariance(diff)
+            mv = self.pca_processor.eigenvector(cov)
+            mapped_train = np.dot(diff, mv)
+
+            new_image_row = self.pca_processor.image_as_row(test_image)
+            new_image_mean = np.subtract(new_image_row, mean_train)
+            mapped_test = np.dot(new_image_mean, mv)
+
+            distances = [np.linalg.norm(mapped_test - train_vec) for train_vec in mapped_train]
+            min_index = np.argmin(distances)
+            predicted_label = train_labels[min_index if min_index < leave_out_index else min_index + 1]
+            if predicted_label == test_label:
+                correct_predictions += 1
+
+        return correct_predictions / n
